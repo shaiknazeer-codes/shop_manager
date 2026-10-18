@@ -64,6 +64,9 @@
         position: relative;
         overflow: hidden;
         animation: fadeInScale 0.3s ease-out;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     .dashboard-hero::before {
@@ -358,14 +361,18 @@
        ------------------------------------------------------------------------- */
     .dashboard-grid {
         display: grid;
-        grid-template-columns: 2fr 1fr;
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
         gap: 24px;
         align-items: start;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     @media (max-width: 1024px) {
         .dashboard-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
+            width: 100%;
         }
         .dashboard-hero {
             flex-direction: column;
@@ -465,6 +472,10 @@
         margin-bottom: 24px;
         box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
         transition: box-shadow 0.2s ease;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
     }
 
     .panel:hover {
@@ -495,8 +506,11 @@
        ------------------------------------------------------------------------- */
     .table-responsive {
         width: 100%;
+        max-width: 100%;
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
         border-radius: 12px;
+        display: block;
     }
 
     .dashboard-table {
