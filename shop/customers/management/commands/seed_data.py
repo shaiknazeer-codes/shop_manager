@@ -1,3 +1,4 @@
+import os
 from decimal import Decimal
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
@@ -11,11 +12,25 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write("Seeding sample data...")
 
-        # Ensure demo user
-        user = User.objects.filter(is_superuser=True).first()
+        # Ensure admin superuser automatically
+        admin_username = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin')
+        admin_password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', 'admin123')
+        admin_email = os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@example.com')
+
+        user = User.objects.filter(username=admin_username).first()
         if not user:
-            user = User.objects.create_user(username='admin', password='adminpassword123', is_staff=True, is_superuser=True)
-            self.stdout.write("Created default superuser: admin / adminpassword123")
+            user = User.objects.create_superuser(
+                username=admin_username,
+                email=admin_email,
+                password=admin_password
+            )
+            self.stdout.write(f"Created default superuser: {admin_username} / {admin_password}")
+        else:
+            user.set_password(admin_password)
+            user.is_staff = True
+            user.is_superuser = True
+            user.save()
+            self.stdout.write(f"Verified superuser credentials for '{admin_username}'.")
 
         # Create sample customers
         c1, _ = Customer.objects.get_or_create(
