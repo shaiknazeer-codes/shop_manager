@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (navToggle) {
         navToggle.addEventListener('click', (e) => {
+            e.preventDefault();
             e.stopPropagation();
             toggleMobileMenu();
         });
@@ -50,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (bottomNavMoreBtn) {
         bottomNavMoreBtn.addEventListener('click', (e) => {
+            e.preventDefault();
             e.stopPropagation();
             toggleMobileMenu();
         });
@@ -57,15 +59,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (drawerCloseBtn) {
         drawerCloseBtn.addEventListener('click', (e) => {
+            e.preventDefault();
             e.stopPropagation();
             closeMobileMenu();
         });
+        drawerCloseBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            closeMobileMenu();
+        }, { passive: false });
     }
 
     if (navBackdrop) {
-        navBackdrop.addEventListener('click', () => {
+        navBackdrop.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             closeMobileMenu();
         });
+        navBackdrop.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            closeMobileMenu();
+        }, { passive: false });
     }
 
     // Close menu when pressing ESC
@@ -75,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Close menu when clicking outside or clicking any nav item
+    // Close menu when clicking outside
     document.addEventListener('click', (e) => {
         if (window.innerWidth <= 992 && navMenu && navMenu.classList.contains('open')) {
             if (!navMenu.contains(e.target) && (!navToggle || !navToggle.contains(e.target)) && (!bottomNavMoreBtn || !bottomNavMoreBtn.contains(e.target))) {
@@ -85,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (navMenu) {
-        navMenu.querySelectorAll('.nav-item').forEach(item => {
+        navMenu.querySelectorAll('.nav-item, .btn-nav-action, .btn-nav-logout').forEach(item => {
             item.addEventListener('click', () => {
                 if (window.innerWidth <= 992) {
                     closeMobileMenu();

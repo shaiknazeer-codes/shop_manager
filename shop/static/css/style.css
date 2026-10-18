@@ -404,6 +404,10 @@ a:hover {
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
 }
 
+body.nav-open .app-navbar {
+  z-index: 1050;
+}
+
 .navbar-container {
   max-width: 1400px;
   margin: 0 auto;
@@ -618,17 +622,20 @@ a:hover {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.55);
+  background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   z-index: 1040;
   opacity: 0;
+  pointer-events: none;
+  cursor: pointer;
   transition: opacity 0.25s ease;
 }
 
 .nav-backdrop.open {
   display: block;
   opacity: 1;
+  pointer-events: auto;
 }
 
 .mobile-drawer-header {
@@ -679,7 +686,7 @@ body.nav-open {
     height: 100vh;
     height: 100dvh;
     background: #ffffff;
-    z-index: 1050;
+    z-index: 1060;
     padding: 0;
     flex-direction: column;
     align-items: stretch;
