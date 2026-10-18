@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} | Shop Manager{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div>
+        <h1 class="page-title">{{ title }}</h1>
+        <p class="page-subtitle">Enter product catalog and inventory details below.</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'product_list' %}" class="btn btn-secondary">
+            &larr; Back to Products
+        </a>
+    </div>
+</div>
+
+<div class="panel form-card-md">
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-error">
+            {{ form.non_field_errors.0 }}
+        </div>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="id_name">Product Name *</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+            <div style="color: var(--danger); font-size: 12.5px; margin-top: 4px;">{{ form.name.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-row-2col">
+            <div class="form-group">
+                <label for="id_category">Category</label>
+                {{ form.category }}
+                <datalist id="category-list">
+                    {% for c in categories %}
+                    <option value="{{ c }}"></option>
+                    {% endfor %}
+                </datalist>
+                {% if form.category.errors %}
+                <div style="color: var(--danger); font-size: 12.5px; margin-top: 4px;">{{ form.category.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_quantity">Current Stock Quantity *</label>
+                {{ form.quantity }}
+                <div class="form-text">Available units on shelf/warehouse.</div>
+                {% if form.quantity.errors %}
+                <div style="color: var(--danger); font-size: 12.5px; margin-top: 4px;">{{ form.quantity.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-row-2col">
+            <div class="form-group">
+                <label for="id_cost_price">Cost / Purchase Price ($) *</label>
+                {{ form.cost_price }}
+                <div class="form-text">What you paid for the product.</div>
+                {% if form.cost_price.errors %}
+                <div style="color: var(--danger); font-size: 12.5px; margin-top: 4px;">{{ form.cost_price.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_selling_price">Selling Price ($) *</label>
+                {{ form.selling_price }}
+                <div class="form-text">Price charged to customer.</div>
+                {% if form.selling_price.errors %}
+                <div style="color: var(--danger); font-size: 12.5px; margin-top: 4px;">{{ form.selling_price.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="id_low_stock_threshold">Low Stock Warning Threshold *</label>
+            {{ form.low_stock_threshold }}
+            <div class="form-text">Trigger dashboard alert when stock reaches or drops below this number.</div>
+            {% if form.low_stock_threshold.errors %}
+            <div style="color: var(--danger); font-size: 12.5px; margin-top: 4px;">{{ form.low_stock_threshold.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="id_description">Product Description (Optional)</label>
+            {{ form.description }}
+            {% if form.description.errors %}
+            <div style="color: var(--danger); font-size: 12.5px; margin-top: 4px;">{{ form.description.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" style="min-width: 160px;">
+                {% if is_edit %}Save Changes{% else %}Add Product{% endif %}
+            </button>
+            <a href="{% url 'product_list' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

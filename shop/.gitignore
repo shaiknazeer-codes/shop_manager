@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local virtual environment
+.venv/
+env/
+venv/
+ENV/
+
+# Local databases
+*.sqlite3
+*.sqlite3-journal
+
+# Static collected files (generated on Render during build.sh)
+staticfiles/
+
+# Environment secrets
+.env
+.env.*
+
+# OS generated files
+.DS_Store
+Thumbs.db

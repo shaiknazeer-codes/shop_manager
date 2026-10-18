@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+
+{% block title %}Business Analytics & Reports | Shop Manager{% endblock %}
+{% block page_title %}Sales &amp; Financial Reports{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div>
+        <h1 class="page-title">Performance Analytics &amp; Reports</h1>
+        <p class="page-subtitle">Showing database figures from <strong>{{ start_date|date:"M d, Y" }}</strong> to <strong>{{ end_date|date:"M d, Y" }}</strong>.</p>
+    </div>
+    <div class="page-actions">
+        <button onclick="window.print()" class="btn btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Print Report
+        </button>
+    </div>
+</div>
+
+<!-- Preset Filters and Custom Date Range Form -->
+<div class="panel no-print" style="margin-bottom: 24px; padding: 18px 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <!-- Quick Presets -->
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <a href="?preset=today" class="btn btn-small {% if preset == 'today' %}btn-primary{% else %}btn-secondary{% endif %}">Today</a>
+            <a href="?preset=week" class="btn btn-small {% if preset == 'week' %}btn-primary{% else %}btn-secondary{% endif %}">Last 7 Days</a>
+            <a href="?preset=month" class="btn btn-small {% if preset == 'month' or not preset %}btn-primary{% else %}btn-secondary{% endif %}">This Month</a>
+            <a href="?preset=year" class="btn btn-small {% if preset == 'year' %}btn-primary{% else %}btn-secondary{% endif %}">This Year</a>
+        </div>
+
+        <!-- Custom Date Range Form -->
+        <form method="get" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <input type="hidden" name="preset" value="custom">
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); margin: 0;">Start:</label>
+                <input type="date" name="start_date" value="{{ start_date|date:'Y-m-d' }}" class="filter-input" style="padding: 6px 10px;">
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); margin: 0;">End:</label>
+                <input type="date" name="end_date" value="{{ end_date|date:'Y-m-d' }}" class="filter-input" style="padding: 6px 10px;">
+            </div>
+            <button type="submit" class="btn btn-secondary btn-small">Apply Range</button>
+        </form>
+    </div>
+</div>
+
+<!-- Key Performance Metrics Cards -->
+<div class="metrics-grid">
+    <!-- Total Revenue -->
+    <div class="metric-card">
+        <div class="metric-icon-box metric-icon-primary">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        </div>
+        <div class="metric-info">
+            <span class="metric-label">Period Revenue</span>
+            <span class="metric-value">${{ revenue|floatformat:2 }}</span>
+            <span class="metric-subtext">{{ sales_count }} completed order{{ sales_count|pluralize }}</span>
+        </div>
+    </div>
+
+    <!-- Est. Gross Profit -->
+    <div class="metric-card">
+        <div class="metric-icon-box metric-icon-success">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+        </div>
+        <div class="metric-info">
+            <span class="metric-label">Est. Gross Profit</span>
+            <span class="metric-value" style="color: var(--success);">${{ estimated_profit|floatformat:2 }}</span>
+            <span class="metric-subtext">COGS: ${{ cogs_total|floatformat:2 }}</span>
+        </div>
+    </div>
+
+    <!-- Total Discounts Given -->
+    <div class="metric-card">
+        <div class="metric-icon-box metric-icon-warning">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><path d="M16 8l-8 8"></path></svg>
+        </div>
+        <div class="metric-info">
+            <span class="metric-label">Discounts Deducted</span>
+            <span class="metric-value">${{ discount_total|floatformat:2 }}</span>
+            <span class="metric-subtext">Customer promotions</span>
+        </div>
+    </div>
+
+    <!-- Tax Collected -->
+    <div class="metric-card">
+        <div class="metric-icon-box metric-icon-primary">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="4" width="20" height="16" rx="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+        </div>
+        <div class="metric-info">
+            <span class="metric-label">Tax Collected</span>
+            <span class="metric-value">${{ tax_total|floatformat:2 }}</span>
+            <span class="metric-subtext">Sales tax liability</span>
+        </div>
+    </div>
+</div>
+
+<div class="two-col-grid">
+    <!-- Best-Selling Products -->
+    <div class="panel">
+        <div class="card-header">
+            <h3>Top Best-Selling Products</h3>
+            <span style="font-size: 13px; color: var(--text-muted);">Ranked by units sold</span>
+        </div>
+
+        {% if best_sellers %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th style="text-align: center;">Units Sold</th>
+                        <th style="text-align: right;">Total Sales</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in best_sellers %}
+                    <tr>
+                        <td>
+                            <strong>{{ item.product__name }}</strong>
+                        </td>
+                        <td>
+                            <span class="badge badge-secondary">{{ item.product__category }}</span>
+                        </td>
+                        <td style="text-align: center;">
+                            <strong style="color: var(--primary);">{{ item.units_sold }}</strong>
+                        </td>
+                        <td style="text-align: right;">
+                            ${{ item.total_sales_val|floatformat:2 }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 36px 12px; color: var(--text-muted); font-size: 14px;">
+            No sales items recorded for this period.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Daily Sales Breakdown -->
+    <div class="panel">
+        <div class="card-header">
+            <h3>Daily Sales Trend</h3>
+            <span style="font-size: 13px; color: var(--text-muted);">Selected date range</span>
+        </div>
+
+        {% if daily_stats %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th style="text-align: center;">Orders</th>
+                        <th style="text-align: right;">Daily Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for day in daily_stats %}
+                    <tr>
+                        <td>
+                            <strong>{{ day.sale_date|date:"D, M d, Y" }}</strong>
+                        </td>
+                        <td style="text-align: center;">
+                            <span class="badge badge-secondary">{{ day.orders_count }}</span>
+                        </td>
+                        <td style="text-align: right;">
+                            <strong>${{ day.daily_revenue|floatformat:2 }}</strong>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 36px 12px; color: var(--text-muted); font-size: 14px;">
+            No daily transactions during this range.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Monthly Sales Trend for Current Year -->
+<div class="panel" style="margin-top: 24px;">
+    <div class="card-header">
+        <h3>Monthly Revenue Breakdown (Current Year)</h3>
+    </div>
+
+    {% if monthly_stats %}
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th style="text-align: center;">Total Orders</th>
+                    <th style="text-align: right;">Monthly Gross Revenue</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in monthly_stats %}
+                <tr>
+                    <td>
+                        <strong>{{ m.sale_month|date:"F Y" }}</strong>
+                    </td>
+                    <td style="text-align: center;">
+                        {{ m.orders_count }} orders
+                    </td>
+                    <td style="text-align: right;">
+                        <strong style="color: var(--primary); font-size: 15px;">${{ m.monthly_revenue|floatformat:2 }}</strong>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 14px;">
+        No monthly sales history available for this year yet.
+    </div>
+    {% endif %}
+</div>
+
+<!-- Low Stock Audit Report -->
+<div class="panel" style="margin-top: 24px;">
+    <div class="card-header">
+        <h3>Low-Stock Inventory Report</h3>
+        <a href="{% url 'inventory_list' %}" class="btn btn-secondary btn-small">Inventory Screen</a>
+    </div>
+
+    {% if low_stock_products %}
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Current Quantity</th>
+                    <th>Reorder Threshold</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prod in low_stock_products %}
+                <tr>
+                    <td>
+                        <strong>{{ prod.name }}</strong>
+                    </td>
+                    <td>
+                        <span class="badge badge-secondary">{{ prod.category }}</span>
+                    </td>
+                    <td>
+                        <strong style="color: {% if prod.is_out_of_stock %}var(--danger){% else %}var(--warning-text){% endif %};">
+                            {{ prod.quantity }}
+                        </strong>
+                    </td>
+                    <td>
+                        {{ prod.low_stock_threshold }}
+                    </td>
+                    <td>
+                        {% if prod.is_out_of_stock %}
+                        <span class="badge badge-danger">Out of Stock</span>
+                        {% else %}
+                        <span class="badge badge-warning">Low Stock</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="{% url 'product_stock_adjust' prod.pk %}" class="btn btn-secondary btn-small">+ Restock</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 24px; color: var(--success-text); font-weight: 600;">
+        No products are currently at or below low stock threshold.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,719 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Shop Manager{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v={% now 'U' %}">
+    <style>
+        /* ==========================================================================
+           Critical App Shell & Top Navbar Styles (Embedded for instant rendering)
+           ========================================================================== */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f1f5f9;
+            color: #0f172a;
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.5;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* Top Navbar */
+        .app-navbar {
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+            width: 100%;
+        }
+
+        .navbar-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            gap: 20px;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .brand-logo-icon {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: #ffffff;
+            border-radius: 9px;
+            font-weight: 800;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+        }
+
+        .brand-text {
+            font-size: 17px;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: -0.3px;
+        }
+
+        .navbar-toggle-btn {
+            display: none;
+            background: transparent;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 6px 8px;
+            cursor: pointer;
+            color: #0f172a;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .navbar-menu {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex: 1;
+            gap: 20px;
+        }
+
+        .navbar-nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 13px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: #64748b;
+            text-decoration: none;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .nav-item .nav-icon {
+            width: 15px;
+            height: 15px;
+            stroke-width: 2;
+            opacity: 0.75;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            flex-shrink: 0;
+        }
+
+        .nav-item:hover {
+            color: #0f172a;
+            background-color: #f1f5f9;
+        }
+
+        .nav-item:hover .nav-icon {
+            opacity: 1;
+            transform: translateY(-1px);
+        }
+
+        .nav-item.active {
+            color: #2563eb;
+            background-color: #eff6ff;
+            font-weight: 600;
+        }
+
+        .nav-item.active .nav-icon {
+            opacity: 1;
+            stroke: #2563eb;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .btn-nav-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: #ffffff !important;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+            transition: all 0.15s ease;
+        }
+
+        .btn-nav-action:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+            color: #ffffff !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
+        }
+
+        .user-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 10px 4px 4px;
+            border-radius: 9999px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        .user-avatar-small {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #e0e7ff;
+            color: #4338ca;
+            font-weight: 700;
+            font-size: 11.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .user-chip-name {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #334155;
+            max-width: 120px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .btn-nav-logout {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            color: #64748b;
+            text-decoration: none;
+            border: 1px solid transparent;
+            transition: all 0.15s ease;
+        }
+
+        .btn-nav-logout:hover {
+            background: #fef2f2;
+            color: #ef4444;
+            border-color: #fecaca;
+        }
+
+        /* Main Content Container */
+        .app-main-content {
+            min-height: calc(100vh - 64px);
+            background-color: #f8fafc;
+            padding: 28px 0 48px;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+            width: 100%;
+        }
+
+        /* Backdrop Overlay for mobile drawer */
+        .nav-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 1040;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .nav-backdrop.open {
+            display: block;
+            opacity: 1;
+        }
+
+        .mobile-drawer-header {
+            display: none;
+        }
+
+        .mobile-signout-text {
+            display: none;
+        }
+
+        /* Mobile Bottom App Bar (hidden on desktop) */
+        .mobile-bottom-bar {
+            display: none;
+        }
+
+        body.nav-open {
+            overflow: hidden;
+        }
+
+        @media (max-width: 992px) {
+            .navbar-container {
+                padding: 0 16px;
+            }
+
+            .navbar-toggle-btn {
+                display: flex;
+                width: 40px;
+                height: 40px;
+                border-radius: 9px;
+                border: 1px solid #cbd5e1;
+                background: #f8fafc;
+                transition: all 0.15s ease;
+            }
+
+            .navbar-toggle-btn:hover,
+            .navbar-toggle-btn.active {
+                background: #eff6ff;
+                border-color: #93c5fd;
+                color: #2563eb;
+            }
+
+            /* Off-canvas right side drawer */
+            .navbar-menu {
+                position: fixed;
+                top: 0;
+                right: 0;
+                width: 320px;
+                max-width: 88vw;
+                height: 100vh;
+                height: 100dvh;
+                background: #ffffff;
+                z-index: 1050;
+                padding: 0;
+                flex-direction: column;
+                align-items: stretch;
+                justify-content: flex-start;
+                box-shadow: -10px 0 30px rgba(15, 23, 42, 0.2);
+                transform: translateX(100%);
+                transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                border-left: 1px solid #e2e8f0;
+                gap: 0;
+            }
+
+            .navbar-menu.open {
+                transform: translateX(0);
+            }
+
+            .mobile-drawer-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 16px 20px;
+                border-bottom: 1px solid #e2e8f0;
+                background: #f8fafc;
+            }
+
+            .mobile-drawer-brand {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-weight: 700;
+                font-size: 15px;
+                color: #0f172a;
+            }
+
+            .mobile-drawer-close {
+                width: 34px;
+                height: 34px;
+                border-radius: 8px;
+                border: 1px solid #e2e8f0;
+                background: #ffffff;
+                color: #64748b;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.15s ease;
+            }
+
+            .mobile-drawer-close:hover {
+                background: #f1f5f9;
+                color: #0f172a;
+            }
+
+            .navbar-nav {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 16px 14px;
+                gap: 4px;
+            }
+
+            .nav-item {
+                padding: 12px 14px;
+                font-size: 14.5px;
+                border-radius: 10px;
+            }
+
+            .nav-item .nav-icon {
+                width: 18px;
+                height: 18px;
+            }
+
+            .navbar-right {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 16px 14px 28px;
+                border-top: 1px solid #e2e8f0;
+                margin-top: auto;
+                background: #ffffff;
+                gap: 12px;
+            }
+
+            .btn-nav-action {
+                width: 100%;
+                justify-content: center;
+                padding: 11px 16px;
+                font-size: 14px;
+                border-radius: 10px;
+            }
+
+            .mobile-user-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 8px 10px;
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 10px;
+            }
+
+            .user-chip {
+                border: none;
+                background: transparent;
+                padding: 0;
+            }
+
+            .mobile-signout-text {
+                display: inline;
+                font-size: 12.5px;
+                font-weight: 600;
+                margin-left: 4px;
+            }
+
+            .btn-nav-logout {
+                width: auto;
+                height: auto;
+                padding: 6px 10px;
+                border-radius: 6px;
+                background: #fee2e2;
+                color: #dc2626;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-main-content {
+                padding: 16px 0 calc(80px + env(safe-area-inset-bottom, 0));
+            }
+
+            .main-container {
+                padding: 0 16px;
+            }
+
+            /* Mobile Bottom Bar (iOS / Android style dock) */
+            .mobile-bottom-bar {
+                display: flex;
+                align-items: center;
+                justify-content: space-around;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: calc(62px + env(safe-area-inset-bottom, 0));
+                padding-bottom: env(safe-area-inset-bottom, 0);
+                background: rgba(255, 255, 255, 0.96);
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+                border-top: 1px solid #e2e8f0;
+                z-index: 1000;
+                box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.05);
+            }
+
+            .bottom-nav-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 3px;
+                font-size: 11px;
+                font-weight: 600;
+                color: #64748b;
+                text-decoration: none;
+                padding: 6px 12px;
+                border-radius: 8px;
+                min-width: 58px;
+                border: none;
+                background: transparent;
+                cursor: pointer;
+                transition: color 0.15s ease, transform 0.15s ease;
+            }
+
+            .bottom-nav-item:active {
+                transform: scale(0.95);
+            }
+
+            .bottom-nav-item.active {
+                color: #2563eb;
+            }
+
+            .bottom-nav-item.active .bottom-nav-icon {
+                stroke: #2563eb;
+            }
+
+            .bottom-nav-icon {
+                width: 20px;
+                height: 20px;
+                stroke-width: 2;
+            }
+
+            /* Center Floating Action Button (New Sale) */
+            .bottom-nav-fab {
+                position: relative;
+                top: -12px;
+                padding: 0;
+            }
+
+            .bottom-nav-fab .fab-circle {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+                color: #ffffff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
+                border: 3px solid #ffffff;
+                transition: transform 0.15s ease;
+            }
+
+            .bottom-nav-fab:active .fab-circle {
+                transform: scale(0.92);
+            }
+
+            .bottom-nav-fab span {
+                margin-top: 3px;
+                font-size: 11px;
+                font-weight: 700;
+                color: #2563eb;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-container {
+                padding: 0 12px;
+            }
+
+            .brand-text {
+                font-size: 15px;
+            }
+
+            .brand-logo-icon {
+                width: 30px;
+                height: 30px;
+                font-size: 14px;
+            }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    {% if user.is_authenticated and not hide_nav %}
+    <!-- Backdrop dimmer for mobile drawer -->
+    <div class="nav-backdrop" id="navBackdrop"></div>
+
+    <!-- Main Top Navbar Navigation -->
+    <header class="app-navbar no-print">
+        <div class="navbar-container">
+            <!-- Brand Logo & Name -->
+            <a href="{% url 'dashboard' %}" class="navbar-brand">
+                <div class="brand-logo-icon">S</div>
+                <span class="brand-text">Shop Manager</span>
+            </a>
+
+            <!-- Mobile Hamburger Toggle -->
+            <button class="navbar-toggle-btn" id="navbarToggleBtn" aria-label="Toggle navigation" aria-expanded="false">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+
+            <!-- Horizontal Navbar Links & Mobile Off-canvas Drawer -->
+            <nav class="navbar-menu" id="navbarMenu">
+                <!-- Mobile Drawer Header -->
+                <div class="mobile-drawer-header">
+                    <div class="mobile-drawer-brand">
+                        <div class="brand-logo-icon" style="width: 28px; height: 28px; font-size: 13px;">S</div>
+                        <span>Shop Manager</span>
+                    </div>
+                    <button type="button" class="mobile-drawer-close" id="mobileDrawerCloseBtn" aria-label="Close navigation">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+
+                <div class="navbar-nav">
+                    <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'dashboard_alt' %}active{% endif %}">
+                        <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                        <span>Dashboard</span>
+                    </a>
+
+                    <a href="{% url 'product_list' %}" class="nav-item {% if 'product' in request.resolver_match.url_name %}active{% endif %}">
+                        <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                        <span>Products</span>
+                    </a>
+
+                    <a href="{% url 'inventory_list' %}" class="nav-item {% if 'inventory' in request.resolver_match.url_name or 'adjust' in request.resolver_match.url_name %}active{% endif %}">
+                        <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                        <span>Inventory</span>
+                    </a>
+
+                    <a href="{% url 'customer_list' %}" class="nav-item {% if 'customer' in request.resolver_match.url_name %}active{% endif %}">
+                        <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        <span>Customers</span>
+                    </a>
+
+                    <a href="{% url 'sale_list' %}" class="nav-item {% if 'sale' in request.resolver_match.url_name or 'invoice' in request.resolver_match.url_name %}active{% endif %}">
+                        <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                        <span>Sales &amp; Billing</span>
+                    </a>
+
+                    <a href="{% url 'reports' %}" class="nav-item {% if 'reports' in request.resolver_match.url_name %}active{% endif %}">
+                        <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                        <span>Reports</span>
+                    </a>
+
+                    {% if user.is_staff %}
+                    <a href="{% url 'admin:index' %}" target="_blank" class="nav-item">
+                        <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        <span>Admin</span>
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- Right Side Actions & Profile -->
+                <div class="navbar-right">
+                    <a href="{% url 'sale_create' %}" class="btn-nav-action">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        <span>New Sale</span>
+                    </a>
+
+                    <div class="mobile-user-row">
+                        <div class="user-chip">
+                            <div class="user-avatar-small">{{ user.username|make_list|first|upper }}</div>
+                            <span class="user-chip-name">{{ user.get_full_name|default:user.username }}</span>
+                        </div>
+
+                        <a href="{% url 'logout' %}" class="btn-nav-logout" title="Log Out">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                            <span class="mobile-signout-text">Sign Out</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="app-main-content">
+        <div class="main-container">
+            {% if messages %}
+            <div class="messages-container no-print">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }}">
+                    <span>{{ message }}</span>
+                    <button type="button" class="alert-close" aria-label="Close">&times;</button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Mobile Bottom App Dock -->
+    <nav class="mobile-bottom-bar no-print" aria-label="Mobile Navigation">
+        <a href="{% url 'dashboard' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'dashboard_alt' %}active{% endif %}">
+            <svg class="bottom-nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            <span>Home</span>
+        </a>
+
+        <a href="{% url 'product_list' %}" class="bottom-nav-item {% if 'product' in request.resolver_match.url_name %}active{% endif %}">
+            <svg class="bottom-nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+            <span>Products</span>
+        </a>
+
+        <a href="{% url 'sale_create' %}" class="bottom-nav-item bottom-nav-fab" aria-label="New Sale">
+            <div class="fab-circle">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </div>
+            <span>Sale</span>
+        </a>
+
+        <a href="{% url 'sale_list' %}" class="bottom-nav-item {% if 'sale' in request.resolver_match.url_name and request.resolver_match.url_name != 'sale_create' or 'invoice' in request.resolver_match.url_name %}active{% endif %}">
+            <svg class="bottom-nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            <span>Sales</span>
+        </a>
+
+        <button type="button" class="bottom-nav-item" id="bottomNavMoreBtn" aria-label="More navigation options">
+            <svg class="bottom-nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1.5"></circle><circle cx="6" cy="12" r="1.5"></circle><circle cx="18" cy="12" r="1.5"></circle></svg>
+            <span>More</span>
+        </button>
+    </nav>
+    {% else %}
+        {% if messages %}
+        <div style="max-width: 440px; margin: 15px auto 0; padding: 0 15px;">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }}">
+                <span>{{ message }}</span>
+                <button type="button" class="alert-close" aria-label="Close">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% block auth_content %}{% endblock %}
+    {% endif %}
+
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

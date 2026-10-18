@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Stock Adjustment | Shop Manager{% endblock %}
+{% block page_title %}Adjust Inventory Stock{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div>
+        <h1 class="page-title">Stock Adjustment</h1>
+        <p class="page-subtitle">Add received shipments, log damaged goods, or perform audit corrections.</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'inventory_list' %}" class="btn btn-secondary">
+            &larr; Back to Inventory
+        </a>
+    </div>
+</div>
+
+<div class="panel form-card">
+    <form method="post">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-error">
+            {{ form.non_field_errors.0 }}
+        </div>
+        {% endif %}
+
+        {% if product %}
+        <input type="hidden" name="product_id" value="{{ product.pk }}">
+        <div class="info-callout">
+            <div style="font-size: 12.5px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Selected Product</div>
+            <div style="font-size: 18px; font-weight: 700; margin: 4px 0 2px;">{{ product.name }}</div>
+            <div style="font-size: 13.5px; color: var(--text-muted);">
+                Category: <strong>{{ product.category }}</strong> &bull; Current Available Stock: <strong style="color: var(--primary);">{{ product.quantity }} units</strong>
+            </div>
+        </div>
+        {% else %}
+        <div class="form-group">
+            <label for="product_id">Select Product *</label>
+            <select name="product_id" id="product_id" class="form-control" required>
+                <option value="">-- Choose a product to adjust --</option>
+                {% for p in all_products %}
+                <option value="{{ p.id }}">{{ p.name }} (Current Stock: {{ p.quantity }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+
+        <div class="form-row-2col">
+            <div class="form-group">
+                <label for="id_adjustment_type">Action *</label>
+                {{ form.adjustment_type }}
+                <div class="form-text">Choose whether to add or subtract stock.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="id_quantity">Units Quantity *</label>
+                {{ form.quantity }}
+                {% if form.quantity.errors %}
+                <div style="color: var(--danger); font-size: 12.5px; margin-top: 4px;">{{ form.quantity.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="id_reason_choice">Reason for Adjustment *</label>
+            {{ form.reason_choice }}
+        </div>
+
+        <div class="form-group">
+            <label for="id_notes">Audit Notes / Explanation (Optional)</label>
+            {{ form.notes }}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" style="min-width: 160px;">
+                Confirm Adjustment
+            </button>
+            <a href="{% url 'inventory_list' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice {{ sale.invoice_number }} - Shop Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body {
+            background-color: #f8fafc;
+            padding: 24px 12px;
+        }
+        @media (max-width: 640px) {
+            body {
+                padding: 12px 8px;
+            }
+            .invoice-action-bar {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch !important;
+            }
+            .invoice-action-bar .btn {
+                width: 100%;
+                justify-content: center;
+                min-height: 40px;
+            }
+        }
+        @media print {
+            body {
+                background: #ffffff !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .invoice-wrapper {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Action Bar (Hidden when printing) -->
+    <div class="no-print invoice-action-bar" style="max-width: 800px; margin: 0 auto 20px; display: flex; justify-content: space-between; align-items: center;">
+        <a href="{% url 'sale_detail' sale.pk %}" class="btn btn-secondary btn-small">
+            &larr; Back to Order Details
+        </a>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="window.print()" class="btn btn-primary btn-small">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                Print Invoice (Ctrl+P)
+            </button>
+        </div>
+    </div>
+
+    <!-- Printable Invoice Container -->
+    <div class="invoice-wrapper">
+        <!-- Invoice Header -->
+        <div class="invoice-header">
+            <div class="invoice-brand">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                    <div style="width: 38px; height: 38px; background: #2563eb; color: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px;">S</div>
+                    <h1 style="margin: 0; font-size: 24px; color: #0f172a;">Shop Manager</h1>
+                </div>
+                <div style="color: #64748b; font-size: 13.5px; line-height: 1.4;">
+                    Retail Store &amp; General Merchandise<br>
+                    123 Commercial Boulevard, Suite 100<br>
+                    Phone: (555) 019-2834 &bull; Email: shop@example.com
+                </div>
+            </div>
+
+            <div class="invoice-meta">
+                <h2>TAX INVOICE</h2>
+                <div style="font-size: 14px; margin-bottom: 4px;">
+                    <strong>Invoice #:</strong> {{ sale.invoice_number }}
+                </div>
+                <div style="font-size: 13.5px; color: #64748b; margin-bottom: 4px;">
+                    <strong>Date:</strong> {{ sale.date|date:"F d, Y H:i" }}
+                </div>
+                <div style="font-size: 13.5px; color: #64748b;">
+                    <strong>Payment:</strong> {{ sale.payment_method }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Billed Parties -->
+        <div class="invoice-parties">
+            <div>
+                <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px;">Billed To:</div>
+                <div style="font-size: 16px; font-weight: 700; color: #0f172a;">{{ sale.display_customer_name }}</div>
+                {% if sale.customer_phone %}
+                <div style="font-size: 13.5px; color: #475569; margin-top: 2px;">Phone: {{ sale.customer_phone }}</div>
+                {% endif %}
+                {% if sale.customer and sale.customer.email %}
+                <div style="font-size: 13.5px; color: #475569;">Email: {{ sale.customer.email }}</div>
+                {% endif %}
+                {% if sale.customer and sale.customer.address %}
+                <div style="font-size: 13px; color: #64748b; margin-top: 4px; white-space: pre-line;">{{ sale.customer.address }}</div>
+                {% endif %}
+            </div>
+
+            <div style="text-align: right;">
+                <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px;">Served By:</div>
+                <div style="font-size: 14px; font-weight: 600; color: #0f172a;">{{ sale.created_by.get_full_name|default:sale.created_by.username|default:"Store Associate" }}</div>
+                <div style="font-size: 13px; color: #64748b; margin-top: 2px;">Status: <strong style="color: #10b981;">PAID IN FULL</strong></div>
+            </div>
+        </div>
+
+        <!-- Itemized Table -->
+        <div class="table-responsive">
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">#</th>
+                        <th>Product Description</th>
+                        <th style="width: 110px; text-align: right;">Unit Price</th>
+                        <th style="width: 70px; text-align: center;">Qty</th>
+                        <th style="width: 110px; text-align: right;">Line Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td style="color: #64748b;">{{ forloop.counter }}</td>
+                        <td>
+                            <strong>{{ item.product.name }}</strong>
+                            <div style="font-size: 12px; color: #64748b;">Category: {{ item.product.category }}</div>
+                        </td>
+                        <td style="text-align: right;">${{ item.unit_price|floatformat:2 }}</td>
+                        <td style="text-align: center;">{{ item.quantity }}</td>
+                        <td style="text-align: right; font-weight: 600;">${{ item.line_total|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Totals Breakdown -->
+        <div class="invoice-totals">
+            <div class="summary-row">
+                <span style="color: #64748b;">Subtotal:</span>
+                <strong>${{ sale.subtotal|floatformat:2 }}</strong>
+            </div>
+
+            {% if sale.discount > 0 %}
+            <div class="summary-row">
+                <span style="color: #64748b;">Discount:</span>
+                <strong style="color: #dc2626;">-${{ sale.discount|floatformat:2 }}</strong>
+            </div>
+            {% endif %}
+
+            {% if sale.tax_rate > 0 %}
+            <div class="summary-row">
+                <span style="color: #64748b;">Tax ({{ sale.tax_rate }}%):</span>
+                <strong>${{ sale.tax_amount|floatformat:2 }}</strong>
+            </div>
+            {% endif %}
+
+            <div class="summary-row total">
+                <span>Grand Total:</span>
+                <span style="color: #0f172a; font-size: 22px;">${{ sale.total_amount|floatformat:2 }}</span>
+            </div>
+        </div>
+
+        {% if sale.notes %}
+        <div style="padding: 12px; background: #f8fafc; border-radius: 8px; font-size: 13px; margin-bottom: 24px;">
+            <strong>Note:</strong> {{ sale.notes }}
+        </div>
+        {% endif %}
+
+        <!-- Invoice Footer -->
+        <div class="invoice-footer">
+            <p style="margin: 0 0 4px; font-weight: 600; color: #0f172a;">Thank you for your business!</p>
+            <p style="margin: 0; font-size: 12px;">Goods once sold can be exchanged within 7 days with original invoice.</p>
+        </div>
+    </div>
+</body>
+</html>

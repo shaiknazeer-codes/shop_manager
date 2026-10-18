@@ -1,0 +1,406 @@
+{% extends 'base.html' %}
+
+{% block title %}New Sale / Billing | Shop Manager{% endblock %}
+{% block page_title %}Point of Sale & Billing{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div>
+        <h1 class="page-title">New Sale & Billing</h1>
+        <p class="page-subtitle">Select or enter customer details, add products to the invoice, and generate receipt.</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'sale_list' %}" class="btn btn-secondary">
+            &larr; Sales History
+        </a>
+    </div>
+</div>
+
+<form method="post" id="posForm" novalidate>
+    {% csrf_token %}
+    
+
+    <div class="pos-layout">
+        <!-- Left Panel: Products & Line Items -->
+        <div>
+            <!-- Customer Card -->
+            <div class="panel" style="margin-bottom: 20px;">
+                <div class="card-header">
+                    <h3>Customer Information</h3>
+                    <a href="{% url 'customer_create' %}" target="_blank" style="font-size: 13px; font-weight: 600;">+ New Customer</a>
+                </div>
+
+                <div class="form-row-2col">
+                    <div class="form-group">
+                        <label for="customer_select">Select Registered Customer</label>
+                        <select name="customer" id="customer_select" class="form-control" onchange="handleCustomerSelect(this)">
+                            <option value="">-- Walk-in / Guest Customer --</option>
+                            {% for c in customers %}
+                            <option value="{{ c.id }}" data-name="{{ c.name }}" data-phone="{{ c.phone }}" {% if request.GET.customer_id == c.id|stringformat:"s" %}selected{% endif %}>
+                                {{ c.name }} ({{ c.phone }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="customer_name">Customer / Billing Name</label>
+                        <input type="text" name="customer_name" id="customer_name" class="form-control" placeholder="Walk-in Customer">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="customer_phone">Customer Phone (Optional)</label>
+                    <input type="text" name="customer_phone" id="customer_phone" class="form-control" placeholder="e.g. 555-0199">
+                </div>
+            </div>
+
+            <!-- Cart / Line Items Panel -->
+            <div class="panel">
+                <div class="card-header">
+                    <h3>Invoice Items</h3>
+                    <button type="button" class="btn btn-secondary btn-small" id="addItemBtn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Add Product Row
+                    </button>
+                </div>
+
+                <div style="margin-bottom: 12px; display: none;" id="cartErrorAlert" class="alert alert-error"></div>
+
+                <!-- Column headers -->
+                <div class="cart-table-header">
+                    <div>Product Item</div>
+                    <div>Price ($)</div>
+                    <div>Quantity</div>
+                    <div>Line Total</div>
+                    <div></div>
+                </div>
+
+                <!-- Dynamic Item Rows Container -->
+                <div id="itemsContainer">
+                    <!-- Default first row -->
+                    <div class="cart-item-row">
+                        <div class="cart-col-product">
+                            <label class="mobile-only-label">Product Item</label>
+                            <select name="product_id[]" class="form-control product-select" required onchange="handleProductChange(this)">
+                                <option value="">-- Choose a product --</option>
+                                {% for p in products %}
+                                <option value="{{ p.id }}" data-price="{{ p.selling_price }}" data-stock="{{ p.quantity }}" {% if p.is_out_of_stock %}disabled{% endif %}>
+                                    {{ p.name }} (Stock: {{ p.quantity }}) {% if p.is_out_of_stock %}[Out of Stock]{% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="stock-info">Available: <span class="avail-stock">-</span> units</div>
+                        </div>
+                        <div class="cart-middle-grid">
+                            <div class="cart-col-price">
+                                <label class="mobile-only-label">Price ($)</label>
+                                <input type="number" name="unit_price[]" step="0.01" min="0" class="form-control unit-price-input" placeholder="0.00" oninput="recalcTotals()" required>
+                            </div>
+                            <div class="cart-col-qty">
+                                <label class="mobile-only-label">Quantity</label>
+                                <input type="number" name="quantity[]" min="1" value="1" class="form-control quantity-input" oninput="recalcTotals()" required>
+                            </div>
+                        </div>
+                        <div class="cart-bottom-row">
+                            <div class="cart-col-total">
+                                <label class="mobile-only-label">Line Total</label>
+                                <strong class="line-total-display">$0.00</strong>
+                            </div>
+                            <div class="cart-col-action">
+                                <button type="button" class="btn btn-secondary btn-small btn-remove-item" onclick="removeRow(this)" title="Remove item">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                    <span class="mobile-only-inline">Remove</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 16px;">
+                    <button type="button" class="btn btn-outline-primary btn-small" id="addItemBtnBottom">
+                        &plus; Add Another Product
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Order Summary & Checkout -->
+        <div class="pos-summary-panel">
+            <h3 style="margin-bottom: 16px; font-size: 17px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">Billing Summary</h3>
+
+            <div class="summary-row">
+                <span style="color: var(--text-muted);">Items Selected:</span>
+                <strong id="summaryItemsCount">0</strong>
+            </div>
+
+            <div class="summary-row">
+                <span style="color: var(--text-muted);">Subtotal:</span>
+                <strong id="summarySubtotal">$0.00</strong>
+            </div>
+
+            <!-- Discount Input -->
+            <div style="padding: 10px 0; border-bottom: 1px solid #f1f5f9;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label for="discount" style="font-size: 13.5px; margin: 0; font-weight: 600;">Discount ($)</label>
+                    <input type="number" name="discount" id="discount" step="0.01" min="0" value="0.00" class="form-control" style="width: 110px; padding: 6px 10px; text-align: right;" oninput="recalcTotals()">
+                </div>
+            </div>
+
+            <!-- Tax Rate Input -->
+            <div style="padding: 10px 0; border-bottom: 1px solid #f1f5f9;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label for="tax_rate" style="font-size: 13.5px; margin: 0; font-weight: 600;">Tax Rate (%)</label>
+                    <input type="number" name="tax_rate" id="tax_rate" step="0.1" min="0" value="0.00" class="form-control" style="width: 110px; padding: 6px 10px; text-align: right;" oninput="recalcTotals()">
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted);">
+                    <span>Calculated Tax:</span>
+                    <span id="summaryTaxAmount">$0.00</span>
+                </div>
+            </div>
+
+            <!-- Final Grand Total -->
+            <div class="summary-row total">
+                <span>Grand Total:</span>
+                <span id="summaryGrandTotal" style="color: var(--primary);">$0.00</span>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="form-group" style="margin-top: 20px;">
+                <label for="payment_method">Payment Method *</label>
+                <select name="payment_method" id="payment_method" class="form-control" required>
+                    {% for code, label in payment_choices %}
+                    <option value="{{ code }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Order Notes -->
+            <div class="form-group">
+                <label for="notes">Sale Notes / Memo (Optional)</label>
+                <textarea name="notes" id="notes" class="form-control" rows="2" placeholder="e.g. Paid in full, delivery requested..."></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 16px;">
+                Complete Sale &amp; Print Bill &rarr;
+            </button>
+        </div>
+    </div>
+</form>
+
+<!-- Row Template for JS Cloning -->
+<template id="rowTemplate">
+    <div class="cart-item-row">
+        <div class="cart-col-product">
+            <label class="mobile-only-label">Product Item</label>
+            <select name="product_id[]" class="form-control product-select" required onchange="handleProductChange(this)">
+                <option value="">-- Choose a product --</option>
+                {% for p in products %}
+                <option value="{{ p.id }}" data-price="{{ p.selling_price }}" data-stock="{{ p.quantity }}" {% if p.is_out_of_stock %}disabled{% endif %}>
+                    {{ p.name }} (Stock: {{ p.quantity }}) {% if p.is_out_of_stock %}[Out of Stock]{% endif %}
+                </option>
+                {% endfor %}
+            </select>
+            <div class="stock-info">Available: <span class="avail-stock">-</span> units</div>
+        </div>
+        <div class="cart-middle-grid">
+            <div class="cart-col-price">
+                <label class="mobile-only-label">Price ($)</label>
+                <input type="number" name="unit_price[]" step="0.01" min="0" class="form-control unit-price-input" placeholder="0.00" oninput="recalcTotals()" required>
+            </div>
+            <div class="cart-col-qty">
+                <label class="mobile-only-label">Quantity</label>
+                <input type="number" name="quantity[]" min="1" value="1" class="form-control quantity-input" oninput="recalcTotals()" required>
+            </div>
+        </div>
+        <div class="cart-bottom-row">
+            <div class="cart-col-total">
+                <label class="mobile-only-label">Line Total</label>
+                <strong class="line-total-display">$0.00</strong>
+            </div>
+            <div class="cart-col-action">
+                <button type="button" class="btn btn-secondary btn-small btn-remove-item" onclick="removeRow(this)" title="Remove item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    <span class="mobile-only-inline">Remove</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</template>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function handleCustomerSelect(select) {
+    const opt = select.selectedOptions[0];
+    const nameInput = document.getElementById('customer_name');
+    const phoneInput = document.getElementById('customer_phone');
+    if (opt && opt.value) {
+        nameInput.value = opt.getAttribute('data-name') || '';
+        phoneInput.value = opt.getAttribute('data-phone') || '';
+    } else {
+        nameInput.value = '';
+        phoneInput.value = '';
+    }
+}
+
+function handleProductChange(select) {
+    const row = select.closest('.cart-item-row');
+    const opt = select.selectedOptions[0];
+    const priceInput = row.querySelector('.unit-price-input');
+    const qtyInput = row.querySelector('.quantity-input');
+    const availSpan = row.querySelector('.avail-stock');
+
+    if (opt && opt.value) {
+        const price = parseFloat(opt.getAttribute('data-price') || '0');
+        const stock = parseInt(opt.getAttribute('data-stock') || '0');
+        priceInput.value = price.toFixed(2);
+        qtyInput.max = stock;
+        availSpan.textContent = stock;
+        if (stock < 1) {
+            availSpan.style.color = 'var(--danger)';
+        } else {
+            availSpan.style.color = 'var(--text-muted)';
+        }
+    } else {
+        priceInput.value = '';
+        availSpan.textContent = '-';
+    }
+    recalcTotals();
+}
+
+function removeRow(btn) {
+    const rows = document.querySelectorAll('.cart-item-row');
+    if (rows.length > 1) {
+        btn.closest('.cart-item-row').remove();
+    } else {
+        // Just clear the single row
+        const row = rows[0];
+        row.querySelector('.product-select').value = '';
+        row.querySelector('.unit-price-input').value = '';
+        row.querySelector('.quantity-input').value = '1';
+        row.querySelector('.avail-stock').textContent = '-';
+        row.querySelector('.line-total-display').textContent = '$0.00';
+    }
+    recalcTotals();
+}
+
+function recalcTotals() {
+    let subtotal = 0;
+    let itemsCount = 0;
+
+    const rows = document.querySelectorAll('.cart-item-row');
+    rows.forEach(row => {
+        const select = row.querySelector('.product-select');
+        const priceInput = row.querySelector('.unit-price-input');
+        const qtyInput = row.querySelector('.quantity-input');
+        const lineTotalDisplay = row.querySelector('.line-total-display');
+
+        if (select && select.value && priceInput && qtyInput) {
+            const price = parseFloat(priceInput.value) || 0;
+            const qty = parseInt(qtyInput.value) || 0;
+            const lineTotal = price * qty;
+            lineTotalDisplay.textContent = '$' + lineTotal.toFixed(2);
+            subtotal += lineTotal;
+            itemsCount += qty;
+
+            // Warn if exceeding stock
+            const opt = select.selectedOptions[0];
+            if (opt) {
+                const stock = parseInt(opt.getAttribute('data-stock') || '0');
+                if (qty > stock) {
+                    qtyInput.style.borderColor = 'var(--danger)';
+                } else {
+                    qtyInput.style.borderColor = 'var(--border-color)';
+                }
+            }
+        } else {
+            lineTotalDisplay.textContent = '$0.00';
+        }
+    });
+
+    // Discount
+    let discount = parseFloat(document.getElementById('discount').value) || 0;
+    if (discount < 0) discount = 0;
+    if (discount > subtotal) discount = subtotal;
+
+    // Tax
+    let taxRate = parseFloat(document.getElementById('tax_rate').value) || 0;
+    if (taxRate < 0) taxRate = 0;
+    const taxableAmount = Math.max(0, subtotal - discount);
+    const taxAmount = taxableAmount * (taxRate / 100);
+
+    const grandTotal = taxableAmount + taxAmount;
+
+    document.getElementById('summaryItemsCount').textContent = itemsCount;
+    document.getElementById('summarySubtotal').textContent = '$' + subtotal.toFixed(2);
+    document.getElementById('summaryTaxAmount').textContent = '$' + taxAmount.toFixed(2);
+    document.getElementById('summaryGrandTotal').textContent = '$' + grandTotal.toFixed(2);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const addBtnTop = document.getElementById('addItemBtn');
+    const addBtnBottom = document.getElementById('addItemBtnBottom');
+    const container = document.getElementById('itemsContainer');
+    const template = document.getElementById('rowTemplate');
+
+    function addNewRow() {
+        const clone = template.content.cloneNode(true);
+        container.appendChild(clone);
+    }
+
+    if (addBtnTop) addBtnTop.addEventListener('click', addNewRow);
+    if (addBtnBottom) addBtnBottom.addEventListener('click', addNewRow);
+
+    // Initial check if customer preselected
+    const customerSelect = document.getElementById('customer_select');
+    if (customerSelect && customerSelect.value) {
+        handleCustomerSelect(customerSelect);
+    }
+
+    // Form submit validation
+    const form = document.getElementById('posForm');
+    form.addEventListener('submit', (e) => {
+        const errorAlert = document.getElementById('cartErrorAlert');
+        errorAlert.style.display = 'none';
+
+        const selects = document.querySelectorAll('.product-select');
+        let validItems = 0;
+        let stockError = null;
+
+        selects.forEach(select => {
+            if (select.value) {
+                validItems++;
+                const row = select.closest('.cart-item-row');
+                const qty = parseInt(row.querySelector('.quantity-input').value) || 0;
+                const stock = parseInt(select.selectedOptions[0].getAttribute('data-stock') || '0');
+                if (qty <= 0) {
+                    stockError = `Quantity must be greater than zero for all items.`;
+                } else if (qty > stock) {
+                    stockError = `Requested quantity (${qty}) exceeds available stock (${stock}) for '${select.selectedOptions[0].text.split('(')[0].trim()}'.`;
+                }
+            }
+        });
+
+        if (validItems === 0) {
+            e.preventDefault();
+            errorAlert.textContent = "Please select at least one product to create a sale.";
+            errorAlert.style.display = 'block';
+            errorAlert.scrollIntoView({ behavior: 'smooth' });
+            return;
+        }
+
+        if (stockError) {
+            e.preventDefault();
+            errorAlert.textContent = stockError;
+            errorAlert.style.display = 'block';
+            errorAlert.scrollIntoView({ behavior: 'smooth' });
+            return;
+        }
+    });
+
+    recalcTotals();
+});
+</script>
+{% endblock %}

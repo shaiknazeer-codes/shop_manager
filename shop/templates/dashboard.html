@@ -1,0 +1,1187 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard | Shop Manager{% endblock %}
+{% block page_title %}Dashboard Overview{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* ==========================================================================
+       Shop Manager — Dashboard Page Specific Stylesheet
+       ========================================================================== */
+
+    /* Root & Animation Variables */
+    :root {
+        --dash-revenue: #10b981;
+        --dash-revenue-glow: rgba(16, 185, 129, 0.28);
+        --dash-products: #3b82f6;
+        --dash-products-glow: rgba(59, 130, 246, 0.28);
+        --dash-stock: #f59e0b;
+        --dash-stock-glow: rgba(245, 158, 11, 0.28);
+        --dash-customers: #8b5cf6;
+        --dash-customers-glow: rgba(139, 92, 246, 0.28);
+    }
+
+    @keyframes livePulse {
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        }
+        70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+        }
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+        }
+    }
+
+    @keyframes fadeInScale {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* -------------------------------------------------------------------------
+       1. Welcome Hero Banner
+       ------------------------------------------------------------------------- */
+    .dashboard-hero {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 55%, #eff6ff 100%);
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 28px 32px;
+        margin-bottom: 26px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+        box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+        position: relative;
+        overflow: hidden;
+        animation: fadeInScale 0.3s ease-out;
+    }
+
+    .dashboard-hero::before {
+        content: '';
+        position: absolute;
+        top: -60px;
+        right: -60px;
+        width: 180px;
+        height: 180px;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
+        pointer-events: none;
+        border-radius: 50%;
+    }
+
+    .dashboard-hero-content {
+        flex: 1;
+        position: relative;
+        z-index: 1;
+    }
+
+    .status-live-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(16, 185, 129, 0.1);
+        color: #047857;
+        border: 1px solid rgba(16, 185, 129, 0.25);
+        font-size: 12px;
+        font-weight: 700;
+        padding: 5px 14px;
+        border-radius: 9999px;
+        letter-spacing: 0.3px;
+        margin-bottom: 12px;
+    }
+
+    .live-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+        display: inline-block;
+        animation: livePulse 2s infinite;
+    }
+
+    .dashboard-hero-title {
+        font-size: 26px;
+        font-weight: 800;
+        color: #0f172a;
+        letter-spacing: -0.03em;
+        margin: 0 0 6px 0;
+        line-height: 1.2;
+    }
+
+    .dashboard-hero-subtitle {
+        color: #64748b;
+        font-size: 14.5px;
+        margin: 0;
+        line-height: 1.5;
+        font-weight: 400;
+    }
+
+    .dashboard-hero-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-hero {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 22px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 14px;
+        text-decoration: none;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        cursor: pointer;
+        border: none;
+    }
+
+    .btn-hero-primary {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        color: #ffffff;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-hero-primary:hover {
+        background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.45);
+    }
+
+    .btn-hero-secondary {
+        background: #ffffff;
+        color: #1e293b;
+        border: 1px solid #cbd5e1;
+        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+    }
+
+    .btn-hero-secondary:hover {
+        background: #f8fafc;
+        border-color: #94a3b8;
+        color: #0f172a;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+    }
+
+    /* -------------------------------------------------------------------------
+       2. KPI Metrics Grid & Cards
+       ------------------------------------------------------------------------- */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
+        gap: 20px;
+        margin-bottom: 28px;
+    }
+
+    .metric-card {
+        background: #ffffff;
+        border-radius: 18px;
+        border: 1px solid #e2e8f0;
+        padding: 22px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                    box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                    border-color 0.25s ease;
+    }
+
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3.5px;
+    }
+
+    .metric-card.card-revenue::before { background: linear-gradient(90deg, #10b981, #059669); }
+    .metric-card.card-products::before { background: linear-gradient(90deg, #3b82f6, #1d4ed8); }
+    .metric-card.card-stock::before { background: linear-gradient(90deg, #f59e0b, #d97706); }
+    .metric-card.card-customers::before { background: linear-gradient(90deg, #8b5cf6, #6366f1); }
+
+    .metric-card:hover {
+        transform: translateY(-4px);
+    }
+
+    .metric-card.card-revenue:hover {
+        box-shadow: 0 16px 28px -6px var(--dash-revenue-glow);
+        border-color: #a7f3d0;
+    }
+
+    .metric-card.card-products:hover {
+        box-shadow: 0 16px 28px -6px var(--dash-products-glow);
+        border-color: #bfdbfe;
+    }
+
+    .metric-card.card-stock:hover {
+        box-shadow: 0 16px 28px -6px var(--dash-stock-glow);
+        border-color: #fde68a;
+    }
+
+    .metric-card.card-customers:hover {
+        box-shadow: 0 16px 28px -6px var(--dash-customers-glow);
+        border-color: #ddd6fe;
+    }
+
+    .metric-card-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+
+    .metric-icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: transform 0.25s ease;
+    }
+
+    .metric-card:hover .metric-icon-box {
+        transform: scale(1.06);
+    }
+
+    .metric-icon-revenue {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: #ffffff;
+        box-shadow: 0 8px 16px -4px rgba(16, 185, 129, 0.4);
+    }
+
+    .metric-icon-products {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: #ffffff;
+        box-shadow: 0 8px 16px -4px rgba(59, 130, 246, 0.4);
+    }
+
+    .metric-icon-stock {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: #ffffff;
+        box-shadow: 0 8px 16px -4px rgba(245, 158, 11, 0.4);
+    }
+
+    .metric-icon-customers {
+        background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+        color: #ffffff;
+        box-shadow: 0 8px 16px -4px rgba(139, 92, 246, 0.4);
+    }
+
+    .metric-tag {
+        font-size: 11.5px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        letter-spacing: 0.2px;
+    }
+
+    .tag-revenue { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+    .tag-products { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .tag-stock { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+    .tag-customers { background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; }
+
+    .metric-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .metric-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        margin-bottom: 6px;
+    }
+
+    .metric-value {
+        font-size: 30px;
+        font-weight: 800;
+        color: #0f172a;
+        line-height: 1.1;
+        letter-spacing: -0.03em;
+        font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+        margin-bottom: 10px;
+    }
+
+    .metric-footer {
+        font-size: 12.5px;
+        color: #64748b;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .metric-trend-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #10b981;
+        display: inline-block;
+    }
+
+    .metric-link {
+        color: #2563eb;
+        font-weight: 600;
+        text-decoration: none;
+        transition: color 0.15s ease;
+    }
+
+    .metric-link:hover {
+        color: #1d4ed8;
+        text-decoration: underline;
+    }
+
+    /* -------------------------------------------------------------------------
+       3. Operational Layout (2-Column Grid)
+       ------------------------------------------------------------------------- */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+        align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+        .dashboard-hero {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .dashboard-hero-actions {
+            width: 100%;
+            flex-wrap: wrap;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-hero {
+            padding: 20px 16px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            gap: 16px;
+        }
+        .dashboard-hero-title {
+            font-size: 20px;
+        }
+        .dashboard-hero-subtitle {
+            font-size: 13.5px;
+        }
+        .dashboard-hero-actions {
+            width: 100%;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .btn-hero {
+            width: 100%;
+            justify-content: center;
+            padding: 11px 16px;
+        }
+        .metrics-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .metric-card {
+            padding: 16px 14px;
+            border-radius: 14px;
+        }
+        .metric-value {
+            font-size: 22px;
+        }
+        .panel {
+            padding: 16px 14px;
+            border-radius: 14px;
+            margin-bottom: 18px;
+        }
+        .panel-header {
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+        }
+        .dashboard-table {
+            min-width: 580px;
+        }
+        .valuation-widget {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px;
+            border-radius: 14px;
+        }
+        .valuation-widget .valuation-link {
+            width: 100%;
+            justify-content: flex-start;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .metrics-grid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        .metric-value {
+            font-size: 20px;
+        }
+        .status-live-badge {
+            font-size: 11px;
+            padding: 4px 10px;
+        }
+    }
+
+    /* -------------------------------------------------------------------------
+       4. Panel Containers
+       ------------------------------------------------------------------------- */
+    .panel {
+        background: #ffffff;
+        border-radius: 18px;
+        border: 1px solid #e2e8f0;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+        transition: box-shadow 0.2s ease;
+    }
+
+    .panel:hover {
+        box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.06);
+    }
+
+    .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .panel-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* -------------------------------------------------------------------------
+       5. Recent Sales Table Styling
+       ------------------------------------------------------------------------- */
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        border-radius: 12px;
+    }
+
+    .dashboard-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        text-align: left;
+    }
+
+    .dashboard-table thead th {
+        background: #f8fafc;
+        color: #64748b;
+        font-size: 11.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        padding: 12px 14px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .dashboard-table thead th:first-child {
+        border-top-left-radius: 10px;
+        border-bottom-left-radius: 10px;
+    }
+
+    .dashboard-table thead th:last-child {
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+    }
+
+    .dashboard-table tbody tr {
+        transition: background-color 0.15s ease;
+    }
+
+    .dashboard-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .dashboard-table tbody td {
+        padding: 14px 12px;
+        font-size: 13.5px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        color: #334155;
+    }
+
+    .invoice-pill {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 12px;
+        font-weight: 700;
+        color: #2563eb;
+        background: #eff6ff;
+        padding: 4px 8px;
+        border-radius: 6px;
+        border: 1px solid #dbeafe;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.15s ease;
+    }
+
+    .invoice-pill:hover {
+        background: #2563eb;
+        color: #ffffff;
+        border-color: #2563eb;
+    }
+
+    .customer-avatar-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .customer-initial-badge {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: #e0e7ff;
+        color: #4338ca;
+        font-weight: 700;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .customer-name-text {
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .badge-payment {
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        display: inline-block;
+    }
+
+    .badge-cash {
+        background: #ecfdf5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+    }
+
+    .badge-card {
+        background: #eff6ff;
+        color: #1e40af;
+        border: 1px solid #bfdbfe;
+    }
+
+    .badge-online {
+        background: #f5f3ff;
+        color: #5b21b6;
+        border: 1px solid #ddd6fe;
+    }
+
+    .amount-text {
+        font-weight: 800;
+        color: #0f172a;
+        font-size: 14px;
+        font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    }
+
+    .btn-table-action {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 5px 11px;
+        border-radius: 7px;
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        color: #334155;
+        text-decoration: none;
+        transition: all 0.15s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .btn-table-action:hover {
+        background: #2563eb;
+        color: #ffffff;
+        border-color: #2563eb;
+    }
+
+    /* -------------------------------------------------------------------------
+       6. Low Stock Alerts Panel
+       ------------------------------------------------------------------------- */
+    .alert-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .alert-item-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 16px;
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #fde68a;
+        border-left: 4.5px solid #f59e0b;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+    }
+
+    .alert-item-card:hover {
+        transform: translateX(3px);
+        box-shadow: 0 6px 14px rgba(245, 158, 11, 0.15);
+    }
+
+    .alert-item-card.danger {
+        border-color: #fecaca;
+        border-left-color: #ef4444;
+        background: #fffafa;
+    }
+
+    .alert-item-card.danger:hover {
+        box-shadow: 0 6px 14px rgba(239, 68, 68, 0.15);
+    }
+
+    .alert-prod-name {
+        font-weight: 700;
+        font-size: 14px;
+        color: #0f172a;
+        margin-bottom: 3px;
+    }
+
+    .alert-prod-threshold {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    .alert-prod-status {
+        text-align: right;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+    }
+
+    .restock-btn {
+        font-size: 11.5px;
+        font-weight: 700;
+        color: #ffffff;
+        background: #2563eb;
+        padding: 4px 12px;
+        border-radius: 9999px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: all 0.15s ease;
+    }
+
+    .restock-btn:hover {
+        background: #1d4ed8;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+    }
+
+    /* Healthy inventory empty state */
+    .healthy-state {
+        text-align: center;
+        padding: 30px 16px;
+        background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+        border: 1px solid #a7f3d0;
+        border-radius: 14px;
+    }
+
+    .healthy-icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: #10b981;
+        color: #ffffff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+        box-shadow: 0 6px 14px rgba(16, 185, 129, 0.3);
+    }
+
+    .healthy-title {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 700;
+        color: #065f46;
+    }
+
+    .healthy-desc {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: #047857;
+    }
+
+    /* -------------------------------------------------------------------------
+       7. Quick Actions Panel
+       ------------------------------------------------------------------------- */
+    .quick-actions-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .quick-action-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 13px 16px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        text-decoration: none;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.02);
+    }
+
+    .quick-action-link:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        transform: translateX(4px);
+        box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
+    }
+
+    .quick-action-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .quick-action-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .icon-pos {
+        background: #eff6ff;
+        color: #2563eb;
+    }
+
+    .icon-customer {
+        background: #f5f3ff;
+        color: #7c3aed;
+    }
+
+    .icon-audit {
+        background: #fffbeb;
+        color: #d97706;
+    }
+
+    .icon-report {
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+    .quick-action-title {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #0f172a;
+        line-height: 1.2;
+    }
+
+    .quick-action-desc {
+        font-size: 11.5px;
+        color: #64748b;
+        margin-top: 2px;
+    }
+
+    .quick-action-arrow {
+        color: #94a3b8;
+        transition: transform 0.2s ease, color 0.2s ease;
+    }
+
+    .quick-action-link:hover .quick-action-arrow {
+        transform: translateX(3px);
+        color: #2563eb;
+    }
+
+    /* -------------------------------------------------------------------------
+       8. Inventory Valuation Mini-Widget
+       ------------------------------------------------------------------------- */
+    .valuation-widget {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        border-radius: 16px;
+        padding: 18px 20px;
+        color: #ffffff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 18px;
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+    }
+
+    .valuation-label {
+        font-size: 11.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: #94a3b8;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .valuation-value {
+        font-size: 20px;
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: -0.02em;
+        font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    }
+
+    .valuation-link {
+        font-size: 12px;
+        font-weight: 600;
+        color: #93c5fd;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: color 0.15s ease;
+    }
+
+    .valuation-link:hover {
+        color: #ffffff;
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Welcome Hero Banner -->
+<div class="dashboard-hero">
+    <div class="dashboard-hero-content">
+        <div class="status-live-badge">
+            <span class="live-dot"></span>
+            Live Store Active &bull; {{ today_date|date:"F d, Y" }}
+        </div>
+        <h1 class="dashboard-hero-title">Welcome back, {{ user.get_full_name|default:user.username }}!</h1>
+        <p class="dashboard-hero-subtitle">Real-time performance metrics, inventory monitoring, and operational overview for your store.</p>
+    </div>
+    <div class="dashboard-hero-actions">
+        <a href="{% url 'sale_create' %}" class="btn-hero btn-hero-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            New Sale / POS
+        </a>
+        <a href="{% url 'product_create' %}" class="btn-hero btn-hero-secondary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+            Add Product
+        </a>
+    </div>
+</div>
+
+<!-- Key Stat Cards -->
+<div class="metrics-grid">
+    <!-- Today's Revenue -->
+    <div class="metric-card card-revenue">
+        <div class="metric-card-top">
+            <div class="metric-icon-box metric-icon-revenue">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            </div>
+            <span class="metric-tag tag-revenue">Today's Sales</span>
+        </div>
+        <div class="metric-info">
+            <span class="metric-label">Today's Revenue</span>
+            <span class="metric-value">${{ today_revenue|floatformat:2 }}</span>
+            <div class="metric-footer">
+                <span class="metric-trend-dot"></span>
+                <span>{{ today_sales_count }} transaction{{ today_sales_count|pluralize }} recorded today</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Products -->
+    <div class="metric-card card-products">
+        <div class="metric-card-top">
+            <div class="metric-icon-box metric-icon-products">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+            </div>
+            <span class="metric-tag tag-products">Catalog</span>
+        </div>
+        <div class="metric-info">
+            <span class="metric-label">Total Products</span>
+            <span class="metric-value">{{ total_products }}</span>
+            <div class="metric-footer">
+                <a href="{% url 'product_list' %}" class="metric-link">Manage product catalog &rarr;</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Stock Units -->
+    <div class="metric-card card-stock">
+        <div class="metric-card-top">
+            <div class="metric-icon-box metric-icon-stock">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            </div>
+            <span class="metric-tag tag-stock">Inventory</span>
+        </div>
+        <div class="metric-info">
+            <span class="metric-label">Total Stock Quantity</span>
+            <span class="metric-value">{{ total_stock_qty }}</span>
+            <div class="metric-footer">
+                <span>Est. Value: <strong>${{ total_inventory_value|floatformat:2 }}</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Customers -->
+    <div class="metric-card card-customers">
+        <div class="metric-card-top">
+            <div class="metric-icon-box metric-icon-customers">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            </div>
+            <span class="metric-tag tag-customers">Customer Base</span>
+        </div>
+        <div class="metric-info">
+            <span class="metric-label">Registered Customers</span>
+            <span class="metric-value">{{ total_customers }}</span>
+            <div class="metric-footer">
+                <a href="{% url 'customer_list' %}" class="metric-link">View customer list &rarr;</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Two-Column Operational Layout -->
+<div class="dashboard-grid">
+    <!-- Left Column: Recent Sales -->
+    <div class="panel">
+        <div class="panel-header">
+            <h3 class="panel-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                Recent Sales Transactions
+            </h3>
+            <a href="{% url 'sale_list' %}" class="btn-table-action">View All Sales &rarr;</a>
+        </div>
+
+        {% if recent_sales %}
+        <div class="table-responsive">
+            <table class="dashboard-table">
+                <thead>
+                    <tr>
+                        <th>Invoice</th>
+                        <th>Customer</th>
+                        <th>Date &amp; Time</th>
+                        <th>Payment</th>
+                        <th>Total</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sale in recent_sales %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'sale_detail' sale.pk %}" class="invoice-pill">{{ sale.invoice_number }}</a>
+                        </td>
+                        <td>
+                            <div class="customer-avatar-cell">
+                                <span class="customer-initial-badge">
+                                    {{ sale.display_customer_name|slice:":1"|upper }}
+                                </span>
+                                <span class="customer-name-text">{{ sale.display_customer_name }}</span>
+                            </div>
+                        </td>
+                        <td style="color: #64748b; font-size: 13px;">
+                            {{ sale.date|date:"M d, H:i" }}
+                        </td>
+                        <td>
+                            {% if sale.payment_method == 'Cash' %}
+                                <span class="badge-payment badge-cash">Cash</span>
+                            {% elif sale.payment_method == 'Card' %}
+                                <span class="badge-payment badge-card">Card</span>
+                            {% else %}
+                                <span class="badge-payment badge-online">{{ sale.payment_method }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="amount-text">${{ sale.total_amount|floatformat:2 }}</span>
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <a href="{% url 'sale_detail' sale.pk %}" class="btn-table-action" title="View Details">View</a>
+                                <a href="{% url 'invoice_print' sale.pk %}" target="_blank" class="btn-table-action" title="Print Invoice">Print</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            <p class="empty-state-title">No sales recorded yet</p>
+            <p class="empty-state-text">Click below to ring up your first order through the POS terminal.</p>
+            <a href="{% url 'sale_create' %}" class="btn btn-primary btn-small">Launch POS Billing</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Right Column: Low Stock Alerts & Quick Actions -->
+    <div>
+        <!-- Low Stock Alert Card -->
+        <div class="panel">
+            <div class="panel-header">
+                <h3 class="panel-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    Low Stock Alerts
+                </h3>
+                <span class="badge {% if low_stock_count > 0 %}badge-danger{% else %}badge-success{% endif %}">
+                    {{ low_stock_count }} item{{ low_stock_count|pluralize }}
+                </span>
+            </div>
+
+            {% if low_stock_products %}
+            <div class="alert-list">
+                {% for prod in low_stock_products %}
+                <div class="alert-item-card {% if prod.is_out_of_stock %}danger{% endif %}">
+                    <div>
+                        <div class="alert-prod-name">{{ prod.name }}</div>
+                        <div class="alert-prod-threshold">Threshold: {{ prod.low_stock_threshold }} units</div>
+                    </div>
+                    <div class="alert-prod-status">
+                        <span class="badge {% if prod.is_out_of_stock %}badge-danger{% else %}badge-warning{% endif %}">
+                            {{ prod.quantity }} left
+                        </span>
+                        <a href="{% url 'product_stock_adjust' prod.pk %}" class="restock-btn">+ Restock</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div style="margin-top: 16px; text-align: center;">
+                <a href="{% url 'inventory_list' %}?filter=alerts" class="btn btn-secondary btn-small btn-block">
+                    Manage Full Inventory &rarr;
+                </a>
+            </div>
+            {% else %}
+            <div class="healthy-state">
+                <div class="healthy-icon-box">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <p class="healthy-title">Healthy Inventory</p>
+                <p class="healthy-desc">All catalog items are comfortably stocked above their minimum thresholds.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Quick Actions Panel -->
+        <div class="panel">
+            <div class="panel-header" style="margin-bottom: 14px; padding-bottom: 10px;">
+                <h3 class="panel-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    Quick Actions
+                </h3>
+            </div>
+            <div class="quick-actions-list">
+                <a href="{% url 'sale_create' %}" class="quick-action-link">
+                    <div class="quick-action-left">
+                        <div class="quick-action-icon icon-pos">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                        </div>
+                        <div>
+                            <div class="quick-action-title">New POS Sale</div>
+                            <div class="quick-action-desc">Checkout and issue invoice</div>
+                        </div>
+                    </div>
+                    <svg class="quick-action-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </a>
+
+                <a href="{% url 'customer_create' %}" class="quick-action-link">
+                    <div class="quick-action-left">
+                        <div class="quick-action-icon icon-customer">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        </div>
+                        <div>
+                            <div class="quick-action-title">Add Customer</div>
+                            <div class="quick-action-desc">Register client profile</div>
+                        </div>
+                    </div>
+                    <svg class="quick-action-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </a>
+
+                <a href="{% url 'stock_adjust' %}" class="quick-action-link">
+                    <div class="quick-action-left">
+                        <div class="quick-action-icon icon-audit">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
+                        </div>
+                        <div>
+                            <div class="quick-action-title">Stock Audit</div>
+                            <div class="quick-action-desc">Log damaged or restocked units</div>
+                        </div>
+                    </div>
+                    <svg class="quick-action-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </a>
+
+                <a href="{% url 'reports' %}" class="quick-action-link">
+                    <div class="quick-action-left">
+                        <div class="quick-action-icon icon-report">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                        </div>
+                        <div>
+                            <div class="quick-action-title">Sales Analytics</div>
+                            <div class="quick-action-desc">Revenue, profits &amp; best-sellers</div>
+                        </div>
+                    </div>
+                    <svg class="quick-action-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </a>
+            </div>
+
+            <!-- Mini Valuation Summary -->
+            <div class="valuation-widget">
+                <div>
+                    <div class="valuation-label">Est. Inventory Value</div>
+                    <div class="valuation-value">${{ total_inventory_value|floatformat:2 }}</div>
+                </div>
+                <a href="{% url 'inventory_list' %}" class="valuation-link">
+                    View Catalog &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

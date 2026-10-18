@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Sales History | Shop Manager{% endblock %}
+{% block page_title %}Sales &amp; Billing History{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div>
+        <h1 class="page-title">Sales &amp; Invoices Registry</h1>
+        <p class="page-subtitle">Complete ledger of sales transactions, billing records, and receipts.</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'sale_create' %}" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            New Sale / POS
+        </a>
+    </div>
+</div>
+
+<!-- Filters Bar -->
+<form method="get" class="filter-bar">
+    <div class="filter-group">
+        <input
+            type="text"
+            name="q"
+            value="{{ q }}"
+            placeholder="Search by invoice number, customer name, or phone..."
+            class="filter-input"
+        >
+    </div>
+
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); margin: 0;">From:</label>
+            <input type="date" name="start_date" value="{{ start_date }}" class="filter-input" style="padding: 7px 10px;">
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); margin: 0;">To:</label>
+            <input type="date" name="end_date" value="{{ end_date }}" class="filter-input" style="padding: 7px 10px;">
+        </div>
+
+        <button type="submit" class="btn btn-secondary btn-small">Filter</button>
+        {% if q or start_date or end_date %}
+        <a href="{% url 'sale_list' %}" class="btn btn-secondary btn-small">Reset</a>
+        {% endif %}
+    </div>
+</form>
+
+<!-- Summary banner for filtered results -->
+<div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+    <div>
+        <span style="color: var(--text-muted); font-size: 13.5px;">Transactions in view:</span>
+        <strong style="margin-left: 6px;">{{ total_count }} sale{{ total_count|pluralize }}</strong>
+    </div>
+    <div>
+        <span style="color: var(--text-muted); font-size: 13.5px;">Filtered Revenue Total:</span>
+        <strong style="font-size: 18px; color: var(--primary); margin-left: 6px;">${{ total_sales_amount|floatformat:2 }}</strong>
+    </div>
+</div>
+
+<!-- Sales Table -->
+<div class="panel">
+    {% if sales %}
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Invoice Number</th>
+                    <th>Date & Time</th>
+                    <th>Customer</th>
+                    <th>Items</th>
+                    <th>Payment Method</th>
+                    <th>Total Amount</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                <tr>
+                    <td>
+                        <strong><a href="{% url 'sale_detail' sale.pk %}">{{ sale.invoice_number }}</a></strong>
+                    </td>
+                    <td style="color: var(--text-muted); font-size: 13.5px;">
+                        {{ sale.date|date:"M d, Y H:i" }}
+                    </td>
+                    <td>
+                        {% if sale.customer %}
+                        <a href="{% url 'customer_detail' sale.customer.pk %}">{{ sale.display_customer_name }}</a>
+                        {% else %}
+                        <span>{{ sale.display_customer_name }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ sale.total_items_count }} unit{{ sale.total_items_count|pluralize }}
+                    </td>
+                    <td>
+                        <span class="badge badge-secondary">{{ sale.payment_method }}</span>
+                    </td>
+                    <td>
+                        <strong style="font-size: 15px;">${{ sale.total_amount|floatformat:2 }}</strong>
+                    </td>
+                    <td style="text-align: right;">
+                        <div class="actions" style="justify-content: flex-end;">
+                            <a href="{% url 'sale_detail' sale.pk %}" class="btn btn-secondary btn-small">
+                                Details
+                            </a>
+                            <a href="{% url 'invoice_print' sale.pk %}" target="_blank" class="btn btn-secondary btn-small">
+                                Print
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if sales.has_other_pages %}
+    <div class="pagination">
+        {% if sales.has_previous %}
+        <a href="?page={{ sales.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" class="pagination-item">&laquo; Prev</a>
+        {% endif %}
+
+        {% for num in sales.paginator.page_range %}
+            {% if sales.number == num %}
+            <span class="pagination-item active">{{ num }}</span>
+            {% elif num > sales.number|add:'-3' and num < sales.number|add:'3' %}
+            <a href="?page={{ num }}{% if q %}&q={{ q }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" class="pagination-item">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if sales.has_next %}
+        <a href="?page={{ sales.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" class="pagination-item">Next &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <p class="empty-state-title">No sales transactions found</p>
+        <p class="empty-state-text">Ring up your first order using the point-of-sale screen.</p>
+        <a href="{% url 'sale_create' %}" class="btn btn-primary btn-small">New Sale</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

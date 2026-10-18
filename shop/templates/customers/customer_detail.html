@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ customer.name }} - Profile | Shop Manager{% endblock %}
+{% block page_title %}Customer Profile{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div>
+        <h1 class="page-title">{{ customer.name }}</h1>
+        <p class="page-subtitle">Member since {{ customer.created_at|date:"F d, Y" }}</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'sale_create' %}?customer_id={{ customer.pk }}" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            New Sale for Customer
+        </a>
+        <a href="{% url 'customer_update' customer.pk %}" class="btn btn-secondary">
+            Edit Profile
+        </a>
+        <a href="{% url 'customer_list' %}" class="btn btn-secondary">
+            &larr; Back to List
+        </a>
+    </div>
+</div>
+
+<!-- Customer Overview Stats -->
+<div class="metrics-grid">
+    <div class="metric-card">
+        <div class="metric-icon-box metric-icon-primary">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+        </div>
+        <div class="metric-info">
+            <span class="metric-label">Contact Phone</span>
+            <span class="metric-value" style="font-size: 20px;">{{ customer.phone }}</span>
+            <span class="metric-subtext">{{ customer.email|default:"No email on file" }}</span>
+        </div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-icon-box metric-icon-success">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        </div>
+        <div class="metric-info">
+            <span class="metric-label">Total Spent</span>
+            <span class="metric-value">${{ total_spent|floatformat:2 }}</span>
+            <span class="metric-subtext">Lifetime purchase total</span>
+        </div>
+    </div>
+
+    <div class="metric-card">
+        <div class="metric-icon-box metric-icon-warning">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line></svg>
+        </div>
+        <div class="metric-info">
+            <span class="metric-label">Total Invoices</span>
+            <span class="metric-value">{{ sales.count }}</span>
+            <span class="metric-subtext">Completed transactions</span>
+        </div>
+    </div>
+</div>
+
+{% if customer.address %}
+<div class="panel" style="margin-bottom: 24px;">
+    <h3 style="font-size: 15px; margin-bottom: 6px;">Billing / Delivery Address</h3>
+    <p style="margin: 0; color: var(--text-muted); font-size: 14px; white-space: pre-line;">{{ customer.address }}</p>
+</div>
+{% endif %}
+
+<!-- Purchase History Table -->
+<div class="panel">
+    <div class="card-header">
+        <h3>Customer Purchase History</h3>
+    </div>
+
+    {% if sales %}
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Invoice #</th>
+                    <th>Date</th>
+                    <th>Payment Method</th>
+                    <th>Items Purchased</th>
+                    <th>Total Paid</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                <tr>
+                    <td>
+                        <strong><a href="{% url 'sale_detail' sale.pk %}">{{ sale.invoice_number }}</a></strong>
+                    </td>
+                    <td style="color: var(--text-muted); font-size: 13.5px;">
+                        {{ sale.date|date:"M d, Y H:i" }}
+                    </td>
+                    <td>
+                        <span class="badge badge-secondary">{{ sale.payment_method }}</span>
+                    </td>
+                    <td>
+                        {{ sale.items.count }} item{{ sale.items.count|pluralize }}
+                    </td>
+                    <td>
+                        <strong>${{ sale.total_amount|floatformat:2 }}</strong>
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="{% url 'sale_detail' sale.pk %}" class="btn btn-secondary btn-small">Details</a>
+                        <a href="{% url 'invoice_print' sale.pk %}" target="_blank" class="btn btn-secondary btn-small">Print Invoice</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p class="empty-state-text">No purchases recorded yet for this customer.</p>
+        <a href="{% url 'sale_create' %}?customer_id={{ customer.pk }}" class="btn btn-primary btn-small">
+            Create First Sale
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

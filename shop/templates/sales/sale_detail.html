@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Invoice {{ sale.invoice_number }} | Shop Manager{% endblock %}
+{% block page_title %}Invoice Details{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div>
+        <h1 class="page-title">Invoice {{ sale.invoice_number }}</h1>
+        <p class="page-subtitle">Recorded on {{ sale.date|date:"F d, Y \a\t H:i" }} &bull; Billed by {{ sale.created_by.username|default:"Admin" }}</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'invoice_print' sale.pk %}" target="_blank" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Print Receipt / Invoice
+        </a>
+        <a href="{% url 'sale_create' %}" class="btn btn-secondary">
+            + New Sale
+        </a>
+        <a href="{% url 'sale_list' %}" class="btn btn-secondary">
+            &larr; All Invoices
+        </a>
+    </div>
+</div>
+
+<div class="sale-detail-grid">
+    <!-- Left Column: Itemized Products Table -->
+    <div class="panel">
+        <div class="card-header">
+            <h3>Billed Products &amp; Services</h3>
+        </div>
+
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Category</th>
+                        <th>Unit Price</th>
+                        <th>Qty</th>
+                        <th style="text-align: right;">Line Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>
+                            <strong>{{ item.product.name }}</strong>
+                        </td>
+                        <td>
+                            <span class="badge badge-secondary">{{ item.product.category }}</span>
+                        </td>
+                        <td>
+                            ${{ item.unit_price|floatformat:2 }}
+                        </td>
+                        <td>
+                            <strong>{{ item.quantity }}</strong>
+                        </td>
+                        <td style="text-align: right;">
+                            <strong>${{ item.line_total|floatformat:2 }}</strong>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if sale.notes %}
+        <div style="margin-top: 24px; padding: 14px; background: #f8fafc; border-radius: var(--radius-md);">
+            <div style="font-size: 12.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Order Notes</div>
+            <p style="margin: 4px 0 0; font-size: 14px;">{{ sale.notes }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Right Column: Financial & Customer Info Summary -->
+    <div>
+        <!-- Customer Info Card -->
+        <div class="panel" style="margin-bottom: 24px;">
+            <div class="card-header">
+                <h3>Customer Details</h3>
+            </div>
+            <div style="font-size: 14px;">
+                <div style="margin-bottom: 8px;">
+                    <span style="color: var(--text-muted);">Name:</span>
+                    <strong style="margin-left: 6px;">
+                        {% if sale.customer %}
+                        <a href="{% url 'customer_detail' sale.customer.pk %}">{{ sale.display_customer_name }}</a>
+                        {% else %}
+                        {{ sale.display_customer_name }}
+                        {% endif %}
+                    </strong>
+                </div>
+                {% if sale.customer_phone %}
+                <div style="margin-bottom: 8px;">
+                    <span style="color: var(--text-muted);">Phone:</span>
+                    <span style="margin-left: 6px;">{{ sale.customer_phone }}</span>
+                </div>
+                {% endif %}
+                {% if sale.customer and sale.customer.email %}
+                <div style="margin-bottom: 8px;">
+                    <span style="color: var(--text-muted);">Email:</span>
+                    <span style="margin-left: 6px;">{{ sale.customer.email }}</span>
+                </div>
+                {% endif %}
+                <div style="margin-bottom: 8px;">
+                    <span style="color: var(--text-muted);">Payment:</span>
+                    <span class="badge badge-secondary" style="margin-left: 6px;">{{ sale.payment_method }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Summary Card -->
+        <div class="panel">
+            <div class="card-header">
+                <h3>Payment Breakdown</h3>
+            </div>
+            <div>
+                <div class="summary-row">
+                    <span style="color: var(--text-muted);">Subtotal:</span>
+                    <strong>${{ sale.subtotal|floatformat:2 }}</strong>
+                </div>
+
+                {% if sale.discount > 0 %}
+                <div class="summary-row">
+                    <span style="color: var(--text-muted);">Discount Applied:</span>
+                    <span style="color: var(--danger); font-weight: 600;">-${{ sale.discount|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+
+                {% if sale.tax_rate > 0 %}
+                <div class="summary-row">
+                    <span style="color: var(--text-muted);">Tax ({{ sale.tax_rate }}%):</span>
+                    <strong>${{ sale.tax_amount|floatformat:2 }}</strong>
+                </div>
+                {% endif %}
+
+                <div class="summary-row total">
+                    <span>Total Paid:</span>
+                    <span style="color: var(--primary); font-size: 22px;">${{ sale.total_amount|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

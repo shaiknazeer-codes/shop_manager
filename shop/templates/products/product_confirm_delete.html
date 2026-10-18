@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirm Delete Product | Shop Manager{% endblock %}
+{% block page_title %}Delete Product{% endblock %}
+
+{% block content %}
+<div class="panel confirm-card">
+    <div class="danger-icon-badge">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+    </div>
+
+    <h2 style="margin: 0 0 10px; font-size: 22px;">Delete "{{ product.name }}"?</h2>
+    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">
+        Are you sure you want to permanently delete this product? This action cannot be undone.
+    </p>
+
+    <div class="confirm-details-box">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span style="color: var(--text-muted);">Category:</span>
+            <strong>{{ product.category }}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span style="color: var(--text-muted);">Current Stock:</span>
+            <strong>{{ product.quantity }} units</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Selling Price:</span>
+            <strong>${{ product.selling_price|floatformat:2 }}</strong>
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="confirm-actions">
+            <button type="submit" class="btn btn-danger" style="min-width: 140px;">
+                Yes, Delete Product
+            </button>
+            <a href="{% url 'product_list' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
